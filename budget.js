@@ -1,11 +1,11 @@
 import moment from 'moment'
+import _ from 'lodash'
 
 class Period {
     constructor(start, end) {
         this.start = start;
         this.end = end;
     }
-
     dayCount() {
         return this.end.diff(this.start, 'days') + 1
     }
@@ -20,7 +20,6 @@ class Budget {
     constructor(month, amount) {
         this.amount = amount || 0
     }
-
     dayCount() {
         return new Period(moment(this.month, 'YYYY-MM').startOf('month'), moment(this.month, 'YYYY-MM').endOf('month')).dayCount()
     }
@@ -40,17 +39,10 @@ export class BudgetPlan {
     }
 
     _query(period) {
-        let totalAmount = 0
-        
-        const monthDiff = period.end.diff(period.start, 'months') + 1
-        for (let month = 0; month <= monthDiff; month++) {
-            const monthString = moment(period.start)
-                .add(month, 'month')
-                .format('YYYY-MM')
-            let budget = new Budget(monthString, this.budgets[monthString]);
-            totalAmount += budget._getAmountOfOverlapping(period)
-        }
-        return totalAmount
+        return _(this.budgets).chain()
+                .map((amount, month) => new Budget(month, amount))
+                .sumBy(budget => budget.getAmountOfOverlapping(period))
+                .value()
     }
 }
 
