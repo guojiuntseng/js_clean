@@ -18,12 +18,12 @@ export class Budget {
     _query(period) {
 
         if (period.start.isSame(period.end, 'month')) {
-            return this._getAmountOfPeriod(period.start, period.end)
+            return this._getAmountOfPeriod(period)
         } else {
             let budget = 0
 
             // start month
-            budget += this._getAmountOfPeriod(period.start, moment(period.start).endOf('month'))
+            budget += this._getAmountOfPeriod(new Period(period.start, moment(period.start).endOf('month')))
 
             // months in between
             const monthDiff = period.end.diff(period.start, 'months') - 1
@@ -35,15 +35,15 @@ export class Budget {
             }
 
             // end month
-            budget += this._getAmountOfPeriod(moment(period.end).startOf('month'), period.end)
+            budget += this._getAmountOfPeriod(new Period(moment(period.end).startOf('month'), period.end))
             return budget
         }
     }
 
-    _getAmountOfPeriod(start, end) {
-        const diffDays = end.diff(start, 'days') + 1
-        const dayCountOfBudget = start.daysInMonth();
-        const amountOfBudget = (this.budgets[start.format('YYYY-MM')] || 0);
+    _getAmountOfPeriod(period) {
+        const diffDays = period.end.diff(period.start, 'days') + 1
+        const dayCountOfBudget = period.start.daysInMonth();
+        const amountOfBudget = (this.budgets[period.start.format('YYYY-MM')] || 0);
         return amountOfBudget / dayCountOfBudget * diffDays;
     }
 }
